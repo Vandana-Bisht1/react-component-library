@@ -24,7 +24,7 @@ jobs:
       - name: Run tests with Jest
         run: npm test  # Replace with your test script command  
  
-  determine-version-change:
+  check-version:
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check_version.outputs.version_changed }}
@@ -32,30 +32,49 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Get current version
-        id: get_version
-        run: echo "::set-output name=current_version::$(jq -r .version package.json)"
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Cache package.json
+        id: cache-package
+        uses: actions/cache@v3
+        with:
+          path: package.json
+          key: package-json-${{ github.sha }}
+          restore-keys: |
+            package-json-
 
       - name: Get previous version
         id: get_previous_version
         run: |
-          git fetch origin +refs/tags/*:refs/tags/*
-          echo "::set-output name=previous_version::$(git tag -l --sort=-v:refname | xargs -I {} git show {}:package.json 2>/dev/null | jq -r .version | head -n 1 || echo '0.0.0')"
+          if [ -f ${{ steps.cache-package.outputs.cache-hit }} ]; then
+            PREVIOUS_VERSION=$(jq -r .version package.json)
+          else
+            PREVIOUS_VERSION="0.0.0"
+          fi
+          echo "::set-output name=previous_version::$PREVIOUS_VERSION"
+
+      - name: Get current version
+        id: get_current_version
+        run: echo "::set-output name=current_version::$(jq -r .version package.json)"
 
       - name: Check if version changed
         id: check_version
         run: |
-          if [ "${{ steps.get_version.outputs.current_version }}" = "${{ steps.get_previous_version.outputs.previous_version }}" ]; then
+          CURRENT_VERSION=${{ steps.get_current_version.outputs.current_version }}
+          PREVIOUS_VERSION=${{ steps.get_previous_version.outputs.previous_version }}
+          if [ "$CURRENT_VERSION" = "$PREVIOUS_VERSION" ]; then
             echo "::set-output name=version_changed::false"
           else
             echo "::set-output name=version_changed::true"
           fi
 
-
   build:
     runs-on: ubuntu-latest
-    needs: determine-version-change
-    if: needs.determine-version-change.outputs.version_changed == 'true'
+    needs: check-version
+    if: needs.check-version.outputs.version_changed == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
