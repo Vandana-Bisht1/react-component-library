@@ -51,10 +51,5 @@ jobs:
       - name: Build library with Rollup
         run: npm run rollup 
 
-      - name: Authenticate with npm
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-        run: npm login --registry=https://npm.pkg.github.com --scope=@${{ github.repository_owner }} --authToken=${NPM_AUTH_TOKEN}
-
       - name: Publish to npm
-        run: npm publish 
+        run: npm publish --access public
