@@ -1,6 +1,6 @@
 {
-  "name": "react-component-library",
-  "version": "0.0.1",
+  "name": "@vandana-bisht1/react-component-library",
+  "version": "0.0.4",
   "description": "React component library",
   "scripts": {
     "rollup": "rollup --config rollup.config.js --bundleConfigAsCjs"
@@ -15,6 +15,7 @@
     "react": "^18.3.1",
     "rollup": "^4.18.0",
     "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-postcss": "^4.0.2",
     "typescript": "^5.5.3"
   },
   "main": "dist/cjs/index.js",
@@ -25,5 +26,8 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "tslib": "^2.6.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/vandana-bisht1"
   }
 }
