@@ -29,6 +29,23 @@ jobs:
     outputs:
       version_changed: ${{ steps.check_version.outputs.version_changed }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '19.3.0'
+
+      - name: Cache package.json
+        id: cache-package
+        uses: actions/cache@v3
+        with:
+          path: package.json
+          key: package-json-${{ github.sha }}
+          restore-keys: |
+            package-json-
+
       - name: Get previous version
         id: get_previous_version
         run: |
